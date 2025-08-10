@@ -1,17 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Camera,
-  Image,
-  ScanBarcode,
-  Eye,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+import { ScanBarcode, Eye, Loader2, AlertCircle, Sparkles } from "lucide-react";
 // ZXing fallback
 import {
   BrowserMultiFormatReader,
@@ -258,13 +252,25 @@ export function VisionScanner({
     ctx.fillRect(x + boxW, y, w - (x + boxW), boxH);
     ctx.fillRect(0, y + boxH, w, h - (y + boxH));
 
-    // Corner lines
+    // Enhanced corner lines with gradient
     const corner = Math.max(18, Math.round(Math.min(boxW, boxH) * 0.12));
-    ctx.strokeStyle =
-      visionMode === "vision"
-        ? "rgba(34, 197, 94, 0.95)" // Green for vision mode
-        : "rgba(255,255,255,0.95)"; // White for barcode mode
+    const gradient = ctx.createLinearGradient(x, y, x + boxW, y + boxH);
+
+    if (visionMode === "vision") {
+      gradient.addColorStop(0, "rgba(16, 185, 129, 0.95)"); // emerald
+      gradient.addColorStop(1, "rgba(6, 182, 212, 0.95)"); // cyan
+    } else {
+      gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      gradient.addColorStop(1, "rgba(156, 163, 175, 0.95)");
+    }
+
+    ctx.strokeStyle = gradient;
     ctx.lineWidth = 3;
+    ctx.shadowColor =
+      visionMode === "vision"
+        ? "rgba(16, 185, 129, 0.5)"
+        : "rgba(255, 255, 255, 0.5)";
+    ctx.shadowBlur = 8;
 
     // top-left
     ctx.beginPath();
@@ -291,24 +297,32 @@ export function VisionScanner({
     ctx.lineTo(x + boxW, y + boxH - corner);
     ctx.stroke();
 
-    // Scan line
+    // Enhanced animated scan line
     const time = Date.now() / 1000;
     const scanY = y + ((Math.sin(time * 2) + 1) / 2) * (boxH - 8) + 4;
-    const gradient = ctx.createLinearGradient(x, scanY, x + boxW, scanY);
-    gradient.addColorStop(0, "rgba(255,255,255,0.0)");
-    gradient.addColorStop(
-      0.5,
-      visionMode === "vision"
-        ? "rgba(34, 197, 94, 0.9)" // Green for vision mode
-        : "rgba(255,255,255,0.9)" // White for barcode mode
-    );
-    gradient.addColorStop(1, "rgba(255,255,255,0.0)");
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = 2;
+    const scanGradient = ctx.createLinearGradient(x, scanY, x + boxW, scanY);
+
+    if (visionMode === "vision") {
+      scanGradient.addColorStop(0, "rgba(16, 185, 129, 0.0)");
+      scanGradient.addColorStop(0.5, "rgba(16, 185, 129, 0.9)");
+      scanGradient.addColorStop(1, "rgba(16, 185, 129, 0.0)");
+    } else {
+      scanGradient.addColorStop(0, "rgba(255, 255, 255, 0.0)");
+      scanGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.9)");
+      scanGradient.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+    }
+
+    ctx.strokeStyle = scanGradient;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 12;
     ctx.beginPath();
     ctx.moveTo(x + 6, scanY);
     ctx.lineTo(x + boxW - 6, scanY);
     ctx.stroke();
+
+    // Reset shadow
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
   }, [showOverlay, visionMode]);
 
   const loop = useCallback(() => {
@@ -469,98 +483,154 @@ export function VisionScanner({
         aria-hidden={!showOverlay}
       />
 
-      {/* Mode Toggle */}
-      <div className="absolute top-3 left-3 flex items-center gap-2">
-        <Button
-          variant={visionMode === "barcode" ? "default" : "secondary"}
-          size="sm"
-          onClick={() => setVisionMode("barcode")}
-          className="bg-white/90 backdrop-blur"
-        >
-          <ScanBarcode className="mr-1 h-3 w-3" />
-          Barcode
-        </Button>
-        <Button
-          variant={visionMode === "vision" ? "default" : "secondary"}
-          size="sm"
-          onClick={() => setVisionMode("vision")}
-          className="bg-white/90 backdrop-blur"
-          disabled={!enableVision}
-        >
-          <Eye className="mr-1 h-3 w-3" />
-          Vision
-        </Button>
+      {/* Enhanced Mode Toggle */}
+      <div className="absolute top-4 left-4 flex items-center gap-3">
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={visionMode === "barcode" ? "default" : "secondary"}
+            size="sm"
+            onClick={() => setVisionMode("barcode")}
+            className={cn(
+              "bg-white/95 backdrop-blur-md border-0 shadow-lg transition-all duration-300",
+              visionMode === "barcode"
+                ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:from-blue-600 hover:to-cyan-600"
+                : "hover:bg-white hover:shadow-xl"
+            )}
+          >
+            <ScanBarcode className="mr-2 h-4 w-4" />
+            Barcode
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={visionMode === "vision" ? "default" : "secondary"}
+            size="sm"
+            onClick={() => setVisionMode("vision")}
+            className={cn(
+              "bg-white/95 backdrop-blur-md border-0 shadow-lg transition-all duration-300",
+              visionMode === "vision"
+                ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
+                : "hover:bg-white hover:shadow-xl"
+            )}
+            disabled={!enableVision}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            Vision
+          </Button>
+        </motion.div>
       </div>
 
-      {/* Vision Capture Button */}
-      {visionMode === "vision" && (
-        <div className="absolute bottom-3 left-3 flex items-center gap-2">
-          <Button
-            variant="default"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            onClick={handleVisionCapture}
-            disabled={visionLoading}
+      {/* Enhanced Vision Capture Button */}
+      <AnimatePresence>
+        {visionMode === "vision" && (
+          <motion.div
+            className="absolute bottom-4 left-4 flex items-center gap-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
           >
-            {visionLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Image className="mr-2 h-4 w-4" />
-            )}
-            {visionLoading ? "Analyzing..." : "Analyze Product"}
-          </Button>
-        </div>
-      )}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="default"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg backdrop-blur-md border-0 transition-all duration-300"
+                onClick={handleVisionCapture}
+                disabled={visionLoading}
+              >
+                {visionLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Analyze Product
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Mode Indicator */}
-      <div className="absolute top-3 right-3">
+      {/* Enhanced Mode Indicator */}
+      <motion.div
+        className="absolute top-4 right-4"
+        animate={{
+          scale: visionMode === "vision" ? [1, 1.05, 1] : 1,
+        }}
+        transition={{
+          duration: 2,
+          repeat: visionMode === "vision" ? Number.POSITIVE_INFINITY : 0,
+        }}
+      >
         <Badge
           variant="secondary"
           className={cn(
-            "bg-white/90 backdrop-blur",
+            "bg-white/95 backdrop-blur-md border-0 shadow-lg transition-all duration-300",
             visionMode === "vision" &&
-              "bg-emerald-100 text-emerald-800 border-emerald-300"
+              "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 border-emerald-300/50"
           )}
         >
           {visionMode === "barcode" ? (
             <>
-              <ScanBarcode className="mr-1 h-3 w-3" />
+              <ScanBarcode className="mr-2 h-4 w-4" />
               Barcode Mode
             </>
           ) : (
             <>
-              <Eye className="mr-1 h-3 w-3" />
+              <Eye className="mr-2 h-4 w-4" />
               Vision Mode
             </>
           )}
         </Badge>
-      </div>
+      </motion.div>
 
-      {/* Vision Error Display */}
-      {visionError && (
-        <div className="absolute top-16 left-3 right-3">
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-800 text-sm">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              <span>{visionError}</span>
+      {/* Enhanced Vision Error Display */}
+      <AnimatePresence>
+        {visionError && (
+          <motion.div
+            className="absolute top-20 left-4 right-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="rounded-xl bg-amber-50/95 border border-amber-200/50 backdrop-blur-md p-4 text-amber-800 text-sm shadow-lg">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <span>{visionError}</span>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Instructions */}
-      <div className="absolute bottom-3 right-3 hidden items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs text-neutral-700 shadow-sm backdrop-blur sm:flex">
+      {/* Enhanced Instructions */}
+      <motion.div
+        className="absolute bottom-4 right-4 hidden items-center gap-2 rounded-full bg-white/95 backdrop-blur-md px-4 py-2 text-xs text-neutral-700 shadow-lg border-0 sm:flex"
+        animate={{
+          y: [0, -2, 0],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      >
         {visionMode === "barcode" ? (
           <>
-            <ScanBarcode className="h-4 w-4" />
-            Aim at barcode
+            <ScanBarcode className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">Aim at barcode</span>
           </>
         ) : (
           <>
-            <Eye className="h-4 w-4" />
-            Point at product
+            <Eye className="h-4 w-4 text-emerald-600" />
+            <span className="font-medium">Point at product</span>
           </>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
