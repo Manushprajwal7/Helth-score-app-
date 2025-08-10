@@ -433,7 +433,7 @@ export default function Page() {
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600 sm:text-4xl">
-                Live Health Scorer
+                helthscore
               </h1>
               <p className="text-sm text-neutral-600">
                 Scan barcodes or use computer vision to analyze food products

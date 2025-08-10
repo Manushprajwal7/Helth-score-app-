@@ -1,4 +1,4 @@
-# Live Health Scorer
+# helthscore
 
 A real-time health scoring application for food products that uses barcode scanning and AI enhancement to provide comprehensive nutritional assessments.
 
@@ -61,7 +61,7 @@ A real-time health scoring application for food products that uses barcode scann
    XAI_API_KEY=your_xai_api_key_here
 
    # App Configuration
-   NEXT_PUBLIC_APP_NAME="Live Health Scorer"
+   NEXT_PUBLIC_APP_NAME="helthscore"
    NEXT_PUBLIC_APP_DESCRIPTION="Real-time health scoring for food products"
 
    # Open Food Facts API (public, no key needed)

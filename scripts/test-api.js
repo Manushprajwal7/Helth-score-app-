@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Test script for Live Health Scorer API endpoints
+ * Test script for helthscore API endpoints
  * Run with: node scripts/test-api.js
  */
 
 const BASE_URL = "http://localhost:3000";
 
 async function testAPI() {
-  console.log("🧪 Testing Live Health Scorer API...\n");
+  console.log("🧪 Testing helthscore API...\n");
 
   // Test 1: Check AI availability
   console.log("1. Testing AI availability...");

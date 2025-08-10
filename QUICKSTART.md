@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Live Health Scorer running in 5 minutes! 🚀
+Get helthscore running in 5 minutes! 🚀
 
 ## 1. Install Dependencies
 
